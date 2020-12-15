@@ -13,6 +13,17 @@ async function pageLoadTime(url, eventName, tag, options) {
 
   // await page.setOfflineMode(true); // offline mode
 
+  if (options && options.jsDisabled) {
+    await page.setRequestInterception(true);
+    page.on('request', request => {
+      if (request.resourceType() === 'script') {
+        request.abort();
+      } else {
+        request.continue();
+      }
+    });  
+  }
+
   if (options && options.network) {
     // Connect to Chrome DevTools
     const client = await page.target().createCDPSession();
@@ -94,8 +105,12 @@ async function avgPageLoadTime(url, eventName, tag, options) {
   const url = 'https://demo.baadal.app/';
   console.log(`URL: ${url}\n`);
 
-  // const t = await pageLoadTime(url, 'load', '01', { version: true, screenshot: true });
-  // console.log(`pageLoad: ${t} sec\n`);
+  const t = await pageLoadTime(url, 'load', '00', {
+    version: true,
+    screenshot: true,
+    jsDisabled: true,
+  });
+  console.log(`pageLoad (JS disabled): ${t} sec\n`);
 
   {
     const t1 = await avgPageLoadTime(url, 'domcontentloaded', '01');
