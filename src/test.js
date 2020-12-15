@@ -118,18 +118,18 @@ async function pageLoadTime(url, eventName, tag, options) {
     const sslConnSetup = connectEnd - secureConnectionStart;
     const connSetup = requestStart - fetchStart;
     console.log('--------------------------------------------------');
-    console.log('Connection setup time:', connSetup, 'ms');
-    console.log('   DNS lookup:', dnsLookup, 'ms');
-    console.log('   TCP connection:', tcpConnSetup, 'ms');
-    console.log('   SSL handshake:', sslConnSetup, 'ms');
+    console.log('Connection setup time:', `${connSetup} ms`);
+    console.log('   DNS lookup:', `${dnsLookup} ms`);
+    console.log('   TCP connection:', `${tcpConnSetup} ms`);
+    console.log('   SSL handshake:', `${sslConnSetup} ms`);
     console.log();
 
     const ttfb = responseStart - requestStart;
     const ttt = responseEnd - responseStart;
     const reqResponse = responseEnd - requestStart;
-    console.log('Request response time:', reqResponse, 'ms');
-    console.log('   Time to first byte:', ttfb, 'ms');
-    console.log('   Transfer time:', ttt, 'ms');
+    console.log('Request response time:', `${reqResponse} ms`);
+    console.log('   Time to first byte:', `${ttfb} ms`);
+    console.log('   Transfer time:', `${ttt} ms`);
     console.log();
 
     const render = domComplete - domLoading;
@@ -137,28 +137,28 @@ async function pageLoadTime(url, eventName, tag, options) {
     const domContentLoaded = domContentLoadedEventStart - domInteractive;
     const complete = domComplete - domContentLoadedEventStart;
     const load = loadEventEnd - domComplete;
-    console.log('Render time:', render, 'ms');
-    console.log('   interactive (doc loaded & parsed):', interactive, 'ms');
-    console.log('   DOMContentLoaded (DOM ready):', domContentLoaded, 'ms');
-    console.log('   complete (doc sub-resources loaded):', complete, 'ms');
-    console.log('   load (page loaded):', load, 'ms');
+    console.log('Render time:', `${render} ms`);
+    console.log('   interactive (doc loaded & parsed):', `${interactive} ms`);
+    console.log('   DOMContentLoaded (DOM ready):', `${domContentLoaded} ms`);
+    console.log('   complete (doc sub-resources loaded):', `${complete} ms`);
+    console.log('   load (page loaded):', `${load} ms`);
     console.log();
     
     const pageLoad = loadEventEnd - navigationStart;
     console.log('Page load time:', chalk.redBright.bold(`${pageLoad} ms`));
-    console.log('   Connection setup time:', connSetup, 'ms');
-    console.log('   Request response time:', reqResponse, 'ms');
-    console.log('   Render time:', render, 'ms');
+    console.log('   Connection setup time:', `${connSetup} ms`);
+    console.log('   Request response time:', `${reqResponse} ms`);
+    console.log('   Render time:', `${render} ms`);
     console.log();
 
     const tti = domInteractive - requestStart;
     const loadComplete = loadEventEnd - requestStart
     console.log('--------------------------------------------------');
-    console.log('   Time to first byte (TTFB):', ttfb, 'ms', `[${connSetup + ttfb} ms]`);
+    console.log('   Time to first byte (TTFB):', `${ttfb} ms`, `[${connSetup + ttfb} ms]`);
     console.log('   Time to interactive (TTI):', chalk.greenBright.bold(`${tti} ms`), `[${connSetup + tti} ms]`);
     console.log('    Time to first paint (FP) ======>', `[${Math.round(firstPaint[0].startTime)} ms]`);
     console.log('First Contentful Paint (FCP) ======>', `[${Math.round(firstContentfulPaint[0].startTime)} ms]`);
-    console.log('          Page load complete:', loadComplete, 'ms', `[${connSetup + loadComplete} ms]`);    
+    console.log('          Page load complete:', `${loadComplete} ms`, `[${connSetup + loadComplete} ms]`);    
     console.log('--------------------------------------------------');
     console.log();
 
@@ -175,8 +175,7 @@ async function avgPageLoadTime(url, eventName, tag, options) {
   for (let i = 0; i < 5; i++) {
     const t = await pageLoadTime(url, eventName, tag, {
       ...options,
-      screenshot: (i === 1),
-      log: (i === 1),
+      screenshot: (i === 0),
     });
     timeList.push(t);    
   }
@@ -194,6 +193,7 @@ async function avgPageLoadTime(url, eventName, tag, options) {
   await pageLoadTime(url, 'load', null, {
     metrics: true,
     version: true,
+    log: true,
   });
   
   // Offline mode
@@ -217,8 +217,8 @@ async function avgPageLoadTime(url, eventName, tag, options) {
 
   {
     const t1 = await avgPageLoadTime(url, 'domcontentloaded', '04', { network: 'fast3g' });
-    console.log(`domLoad: ${t1} sec\n`);
+    console.log(`domLoad (Fast 3G): ${t1} sec\n`);
     const t2 = await avgPageLoadTime(url, 'load', '05', { network: 'fast3g' });
-    console.log(`pageLoad: ${t2} sec\n`);  
+    console.log(`pageLoad (Fast 3G): ${t2} sec\n`);  
   }
 })();
