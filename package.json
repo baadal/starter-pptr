@@ -11,6 +11,7 @@
   "author": "Abhishek Raj <abhi@raj.me>",
   "license": "UNLICENSED",
   "dependencies": {
+    "chalk": "^4.1.0",
     "puppeteer-core": "^5.3.1"
   }
 }
