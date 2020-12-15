@@ -9,6 +9,37 @@ async function pageLoadTime(url, eventName, tag, options) {
   });
   const page = await browser.newPage();
 
+  // await page.setCacheEnabled(false); // disable cache
+
+  // await page.setOfflineMode(true); // offline mode
+
+  if (options && options.network) {
+    // Connect to Chrome DevTools
+    const client = await page.target().createCDPSession();
+    // await client.send('Network.enable');
+
+    let config = null;
+    if (options.network === 'fast3g') {
+      config = {
+        'offline': false,
+        'downloadThroughput': 1.5 * 1024 * 1024 / 8, // bytes/s (1.5 Mbps) 
+        'uploadThroughput': 1.5 * 1024 * 1024 / 8, // bytes/s (1.5 Mbps)
+        'latency': 600 // ms
+      };
+    } else if (options.network === 'slow3g') {
+      config = {
+        'offline': false,
+        'downloadThroughput': 410 * 1024 / 8, // bytes/s (410 Kbps) 
+        'uploadThroughput': 410 * 1024 / 8, // bytes/s (410 Kbps)
+        'latency': 2000 // ms
+      };
+    }
+
+    if (config) {
+      await client.send('Network.emulateNetworkConditions', config);
+    }
+  }
+  
   if (options && options.mobile) {
     await page.setViewport({
       width: 414,
@@ -26,7 +57,11 @@ async function pageLoadTime(url, eventName, tag, options) {
   }
 
   const tstart = Date.now();
-  await page.goto(url, { waitUntil: eventName });
+  try {
+    await page.goto(url, { waitUntil: eventName });
+  } catch(e) {
+    console.log(`[${e.name}] ${e.message}`);
+  }
   const tstop = Date.now();
 
   if (options && options.screenshot) {
@@ -38,10 +73,11 @@ async function pageLoadTime(url, eventName, tag, options) {
   return Math.round((tstop - tstart) / 10) / 100;
 }
 
-async function avgPageLoadTime(url, eventName, tag) {
+async function avgPageLoadTime(url, eventName, tag, options) {
   const timeList = [];
   for (let i = 0; i < 7; i++) {
     const t = await pageLoadTime(url, eventName, tag, {
+      ...options,
       screenshot: (i === 1),
       log: (i === 1),
       version: (i === 1),
@@ -61,8 +97,17 @@ async function avgPageLoadTime(url, eventName, tag) {
   // const t = await pageLoadTime(url, 'load', '01', { version: true, screenshot: true });
   // console.log(`pageLoad: ${t} sec\n`);
 
-  const t1 = await avgPageLoadTime(url, 'domcontentloaded', '01');
-  console.log(`domLoad: ${t1} sec\n`);
-  const t2 = await avgPageLoadTime(url, 'load', '02');
-  console.log(`pageLoad: ${t2} sec\n`);
+  {
+    const t1 = await avgPageLoadTime(url, 'domcontentloaded', '01');
+    console.log(`domLoad: ${t1} sec\n`);
+    const t2 = await avgPageLoadTime(url, 'load', '02');
+    console.log(`pageLoad: ${t2} sec\n`);  
+  }
+
+  {
+    const t1 = await avgPageLoadTime(url, 'domcontentloaded', '01', { network: 'fast3g' });
+    console.log(`domLoad: ${t1} sec\n`);
+    const t2 = await avgPageLoadTime(url, 'load', '02', { network: 'fast3g' });
+    console.log(`pageLoad: ${t2} sec\n`);  
+  }
 })();
